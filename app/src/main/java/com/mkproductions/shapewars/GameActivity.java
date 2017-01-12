@@ -1,5 +1,6 @@
 package com.mkproductions.shapewars;
 
+import android.graphics.Canvas;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.MotionEvent;
@@ -7,7 +8,7 @@ import android.widget.ImageView;
 
 
 public class GameActivity extends AppCompatActivity {
-    Game newGame;
+    Game game;
     ImageView mainCharacter;
 
     @Override
@@ -15,19 +16,19 @@ public class GameActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_game);
         mainCharacter = (ImageView)findViewById(R.id.main_character);
-        newGame = new Game(mainCharacter);
-        newGame.startRun();
+        game = new Game(mainCharacter);
+        game.startRun();
     }
 
     @Override
     public void onBackPressed(){
         super.onBackPressed();
-        newGame.stopRun();
+        game.stopRun();
     }
 
     @Override
     public boolean onTouchEvent(MotionEvent e){
-        newGame.onTouchEvent(e);
+        game.onTouchEvent(e);
         return true;
     }
 }
