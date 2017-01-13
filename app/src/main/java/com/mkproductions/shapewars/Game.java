@@ -1,10 +1,14 @@
 package com.mkproductions.shapewars;
 
+import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.view.MotionEvent;
+import android.view.SurfaceHolder;
+import android.view.SurfaceView;
+import android.view.View;
 import android.widget.ImageView;
 
 import java.util.Timer;
@@ -15,35 +19,52 @@ import java.util.TimerTask;
  */
 
 
-public class Game{
+public class Game extends SurfaceView implements Runnable {
 
-    private final int FPS = 40;
-    Timer timer;
-    ImageView mainCharacter;
-    Bitmap bitmap;
-    Canvas canvas;
+    private boolean playing;
+    private SurfaceHolder surfaceHolder;
+    private Canvas canvas;
+    private Paint paint;
+    private Character character;
+    private Thread gameThread = null;
 
 
-    public Game(ImageView mainCharacter){
-        this.mainCharacter = mainCharacter;
-        bitmap = Bitmap.createBitmap(100, 100, Bitmap.Config.ARGB_8888);
-        canvas = new Canvas(bitmap);
+    public Game(Context context){
+        super(context);
+        paint = new Paint();
+        surfaceHolder = getHolder();
+        character = new Character(context);
     }
 
-    public void startRun(){
-        timer = new Timer();
-        timer.scheduleAtFixedRate(new TimerTask() {
-                                      @Override
-                                      public void run() {
-                                          System.out.println("Started from runnable thread");
-                                      }
-                                  },0, 1000 / FPS
-        );
+    @Override
+    public void run(){
+        while (playing){
+            draw();
+            control();
+        }
     }
 
-    public void stopRun(){
-        timer.cancel();
-        System.out.println("Stopped runnable thread");
+    private void control(){
+        try{
+            gameThread.sleep(1);
+        }catch (InterruptedException e){
+            e.printStackTrace();
+        }
+    }
+
+    public void pause(){
+        playing = false;
+        try{
+            gameThread.join();
+        }catch (InterruptedException e){
+
+        }
+    }
+
+    public void start(){
+        playing = true;
+        gameThread = new Thread(this);
+        gameThread.start();
     }
 
     public boolean onTouchEvent(MotionEvent event) {
@@ -51,27 +72,25 @@ public class Game{
         int y = (int) event.getY();
         switch (event.getAction()) {
             case MotionEvent.ACTION_DOWN:
-                mainCharacter.setX(x - mainCharacter.getWidth() / 2);
-                mainCharacter.setY(y - mainCharacter.getHeight() * 2);
-                fireProjectile();
+                character.MoveCharacter(x, y);
             case MotionEvent.ACTION_UP:
-                mainCharacter.setX(x - mainCharacter.getWidth() / 2);
-                mainCharacter.setY(y - mainCharacter.getHeight() * 2);
+                character.MoveCharacter(x, y);
             case MotionEvent.ACTION_MOVE:
-                mainCharacter.setX(x - mainCharacter.getWidth() / 2);
-                mainCharacter.setY(y - mainCharacter.getHeight() * 2);
+                character.MoveCharacter(x, y);
                 break;
         }
         return true;
     }
 
-    private void fireProjectile(){
-        System.out.println("Fire projectile");
-        Paint paint = new Paint();
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(10);
-        canvas.drawRect(100, 100, 100, 100, paint);
+    private void draw(){
+        if(surfaceHolder.getSurface().isValid()){
+            canvas = surfaceHolder.lockCanvas();
+            canvas.drawColor(Color.CYAN);
+
+            paint.setColor(Color.WHITE);
+            canvas.drawBitmap(character.getBitmap(), character.getX(), character.getY(), paint);
+
+            surfaceHolder.unlockCanvasAndPost(canvas);
+        }
     }
-
-
 }
